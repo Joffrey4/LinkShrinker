@@ -168,3 +168,13 @@ fabric.properties
 /.openode
 /package-lock.json
 /bin/url.db/
+.idea/LinkShrinker.iml
+.idea/encodings.xml
+.idea/inspectionProfiles/
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/watcherTasks.xml
+public/javascripts/
+public/stylesheets/style.css
+public/stylesheets/style.css.map
