@@ -1,3 +1,4 @@
+let I18n = require('../app').I18n;
 let validUrl = require('valid-url');
 let db = require('../bin/db.js');
 let express = require('express');
@@ -11,6 +12,7 @@ defineIdLength((result) => {idLength = result});
 
 /* GET home page. */
 router.post('/', function(req, res, next) {
+    I18n.use(req.headers["accept-language"].substring(0,2));
 
     // If the entered URL is valid
     if (validUrl.isUri(req.body.uri)){
@@ -26,8 +28,9 @@ router.post('/', function(req, res, next) {
                     db.put(id, req.body.uri, () => {
                         res.render('minifier/minified',
                             {
-                                title: ":: Minified !",
-                                h1_brand: "Your link was minified !",
+                                title: ":: " + I18n.translate `Minified !`,
+                                shortener_h1: I18n.translate `Your link was minified !`,
+                                shortener_tagline: I18n.translate `All kuuu.ga URLs are deleted after one year of inactivity`,
                                 url: domain + id
                             });
                     });

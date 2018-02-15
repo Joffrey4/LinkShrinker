@@ -7,8 +7,8 @@
     "start": "node ./bin/www",
     "test": "set DEBUG=myapp:* & npm start"
   },
-  "engines" : {
-    "node" : "<=8.9.4"
+  "engines": {
+    "node": "<=8.9.4"
   },
   "dependencies": {
     "body-parser": "~1.18.2",
@@ -17,6 +17,7 @@
     "express": "^4.16.2",
     "level": "^2.1.2",
     "morgan": "~1.9.0",
+    "node-i18n": "git+https://github.com/eslachance/node-i18n.git",
     "node-persist": "^2.1.0",
     "node-sass-middleware": "0.11.0",
     "serve-favicon": "~2.4.5",

@@ -2,7 +2,7 @@
 
 {% block minifier %}
     <form action="/minified!" method="post">
-        <input placeholder="Your original URL here" type="url" required name="uri">
-        <button type="submit">Shorten URL</button>
+        <input placeholder=" {{ shortener_placeholder }}" type="url" required name="uri">
+        <button type="submit"> {{ shortener_button }}</button>
     </form>
 {% endblock %}

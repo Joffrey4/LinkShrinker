@@ -3,10 +3,10 @@
 {% block body %}
     <div class="shortener">
         <div class="content">
-            <h1>{{ h1_brand }}</h1>
+            <h1>{{ shortener_h1 }}</h1>
             <div class="input-container">
                 {% block minifier %}{% endblock %}
-                <div class="tagline">All kuuu.ga URLs are deleted after one year of inactivity</div>
+                <div class="tagline">{{ shortener_tagline }}</div>
             </div>
         </div>
     </div>

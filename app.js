@@ -5,8 +5,15 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const sassMiddleware = require('node-sass-middleware');
+const I18n = require("node-i18n");
+
+// Internationalization initialisation
+const bundles = require("./bin/langs.js");
+I18n.init({bundles: bundles});
 
 let app = express();
+
+module.exports = { app: app, I18n: I18n };
 
 const index = require('./routes/index');
 const shortener = require('./routes/shortener');
@@ -16,8 +23,7 @@ const redirector = require('./routes/redirector');
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'twig');
 
-    // uncomment after placing your favicon in /public
-    //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+    app.use(favicon(path.join(__dirname, 'public/images', 'favicon.ico')));
     app.use(logger('dev'));
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: false }));
@@ -51,5 +57,3 @@ const redirector = require('./routes/redirector');
         res.status(err.status || 500);
         res.render('error');
     });
-
-module.exports = { app: app };
