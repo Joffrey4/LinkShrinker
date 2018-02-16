@@ -4,11 +4,12 @@ let db = require('../bin/db.js');
 let express = require('express');
 let router = express.Router();
 
-const domain = defineBaseDomain();
+const domain = 'http://' + defineBaseDomain() + '/';
 const usableChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const usableCharLength = usableChars.length;
-let idLength;
-defineIdLength((result) => {idLength = result});
+
+let idLength, maxId, currentIdAmount;
+getIdState((resLength, resMaxId, resCurrIdAmount) => {[idLength, maxId, currentIdAmount] = [resLength, resMaxId, resCurrIdAmount];});
 
 /* GET home page. */
 router.post('/', function(req, res, next) {
@@ -26,6 +27,8 @@ router.post('/', function(req, res, next) {
             db.get(id, (err, value) => {
                 if (err) {
                     db.put(id, req.body.uri, () => {
+
+                        // Send the page with the link
                         res.render('minifier/minified',
                             {
                                 title: ":: " + I18n.translate `Minified !`,
@@ -33,6 +36,26 @@ router.post('/', function(req, res, next) {
                                 shortener_tagline: I18n.translate `All kuuu.ga URLs are deleted after one year of inactivity`,
                                 url: domain + id
                             });
+
+                        currentIdAmount += 1;
+
+                        // If there's not enough id left, update the id length
+                        if (!hasIdLeft()) {
+                            db.get("-idLength", (err, values) => {
+                                if (err) {
+                                    console.log("Err: Unable to update currentIdAmount") // TODO: Handle this error
+                                } else {
+                                    console.log(values);
+                                    values = values.slice(0, -1) + currentIdAmount;
+                                    db.put("-idLength", values)
+                                }
+                            });
+                            getIdState((resLength, resMaxId, resCurrIdAmount) => {
+                                idLength = resLength;
+                                maxId = resMaxId;
+                                currentIdAmount = resCurrIdAmount;
+                            })
+                        }
                     });
                 } else {
                     saveURL()
@@ -56,51 +79,39 @@ function makeId() {
 }
 
 function defineBaseDomain() {
-    let domain = 'http://';
     if (process.env.DOMAIN === undefined) {
-        domain += '127.0.0.1:3000/'
+        return '127.0.0.1:3000'
     } else {
-        domain += process.env.DOMAIN + '/'
+        return process.env.DOMAIN
     }
-    return domain
 }
 
-function defineIdLength(callback) {
+function hasIdLeft() {
+    return currentIdAmount < maxId * 0.90;
+}
+
+function getIdState(callback) {
     db.get("-idLength", (err, values) => {
-        let length;
+        let length, maxId, currentIdAmount;
 
-        // Retrieve the greatest char length currently in use
+        // If there's less than 20% of free link, set a longer link and reset the counter
         if (!err) {
-            let lastEntry;
+            [currentIdAmount, length] = [values.length, parseInt(values.slice(-1))];
+            maxId = multiplicativeRecursive(usableCharLength, usableCharLength, length);
 
-            for (let i = 0; i < values.length; i++) {
-                if (lastEntry === undefined) {
-                    lastEntry = [(i + 1), parseInt(values[i])]
-                } else {
-                    if (lastEntry[0] < (i + 1)) {
-                        lastEntry = [i, parseInt(values[i])]
-                    }
-                }
+            if (currentIdAmount > (maxId * 0.80)) {
+                length += 1;
+                currentIdAmount = 0;
+                maxId = multiplicativeRecursive(usableCharLength, usableCharLength, length);
+                values = values.slice(0, -1) + length;
+                db.put("-idLength", values)
             }
-
-            // Check if there's enough id left to use, with this char length. And set a new char length if not.
-            if (lastEntry !== undefined) {
-                let maxId = multiplicativeRecursive(usableCharLength, usableCharLength, lastEntry[0]);
-
-                if (lastEntry[1] < (maxId * 0.80)) {
-                    length = lastEntry[0]
-                } else {
-                    length = lastEntry[0] + 1;
-                    values.push(length);
-                    db.put("-idLength", values)
-                }
-            }
-            return callback(length)
+            return callback(length, maxId, currentIdAmount)
 
         // If the database is empty, initialize it
         } else {
-            db.put("-idLength", [0]);
-            defineIdLength((response) => { return callback(response) })
+            db.put("-idLength", "0");
+            getIdState((resLength, resMaxId, resCurrentIdAmount) => {return callback(resLength, resMaxId, resCurrentIdAmount)})
         }
     });
 

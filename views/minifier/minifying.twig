@@ -3,6 +3,6 @@
 {% block minifier %}
     <form action="/minified!" method="post">
         <input placeholder=" {{ shortener_placeholder }}" type="url" required name="uri">
-        <button type="submit"> {{ shortener_button }}</button>
+        <button type="submit" autofocus> {{ shortener_button }}</button>
     </form>
 {% endblock %}
