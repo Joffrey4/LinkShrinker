@@ -1,5 +1,6 @@
+const https = require('https');
+const validUrl = require('valid-url');
 let I18n = require('../app').I18n;
-let validUrl = require('valid-url');
 let db = require('../bin/db.js');
 let express = require('express');
 let router = express.Router();
@@ -9,64 +10,71 @@ const usableChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456
 const usableCharLength = usableChars.length;
 
 let idLength, maxId, currentIdAmount;
-getIdState((resLength, resMaxId, resCurrIdAmount) => {[idLength, maxId, currentIdAmount] = [resLength, resMaxId, resCurrIdAmount];});
+getIdState((resLength, resMaxId, resCurrIdAmount) => {[idLength, maxId, currentIdAmount] = [resLength, resMaxId, resCurrIdAmount]});
 
 /* GET home page. */
 router.post('/', function(req, res, next) {
     I18n.use(req.headers["accept-language"].substring(0,2));
+    //console.log(req.connection.remoteAddress);
 
-    // If the entered URL is valid
-    if (validUrl.isUri(req.body.uri)){
-        let id;
-        saveURL();
+    // Recaptcha checking
+    verifyRecaptcha(req.body["g-recaptcha-response"], (success) => {
+        if (success) {
 
-        // Save the link into the database with the founded id
-        function saveURL() {
-            id = makeId();
+            // Valid URL checking
+            if (validUrl.isUri(req.body.uri)){
+                let id;
+                saveURL();
 
-            db.get(id, (err, value) => {
-                if (err) {
-                    db.put(id, req.body.uri, () => {
+                // Save the link into the database with the found id
+                function saveURL() {
+                    id = makeId();
 
-                        // Send the page with the link
-                        res.render('minifier/minified',
-                            {
-                                title: ":: " + I18n.translate `Minified !`,
-                                shortener_h1: I18n.translate `Your link was minified !`,
-                                shortener_tagline: I18n.translate `All kuuu.ga URLs are deleted after one year of inactivity`,
-                                url: domain + id
-                            });
+                    db.get(id, (err, value) => {
+                        if (err) {
+                            db.put(id, req.body.uri, () => {
 
-                        currentIdAmount += 1;
+                                // Send the page with the link
+                                res.render('minifier/minified',
+                                    {
+                                        title: ":: " + I18n.translate `Minified !`,
+                                        shortener_h1: I18n.translate `Your link was minified !`,
+                                        shortener_tagline: I18n.translate `All kuuu.ga URLs are deleted after one year of inactivity`,
+                                        url: domain + id
+                                    });
 
-                        // If there's not enough id left, update the id length
-                        if (!hasIdLeft()) {
-                            db.get("-idLength", (err, values) => {
-                                if (err) {
-                                    console.log("Err: Unable to update currentIdAmount") // TODO: Handle this error
-                                } else {
-                                    console.log(values);
-                                    values = values.slice(0, -1) + currentIdAmount;
-                                    db.put("-idLength", values)
+                                currentIdAmount += 1;
+
+                                // If there's not enough id left, update the id length
+                                if (!hasIdLeft()) {
+                                    db.get("-idLength", (err, values) => {
+                                        if (err) {
+                                            console.log("Err: Unable to update currentIdAmount") // TODO: Handle this error
+                                        } else {
+                                            console.log(values);
+                                            values = values.slice(0, -1) + currentIdAmount;
+                                            db.put("-idLength", values)
+                                        }
+                                    });
+                                    getIdState((resLength, resMaxId, resCurrIdAmount) => {
+                                        idLength = resLength;
+                                        maxId = resMaxId;
+                                        currentIdAmount = resCurrIdAmount;
+                                    })
                                 }
                             });
-                            getIdState((resLength, resMaxId, resCurrIdAmount) => {
-                                idLength = resLength;
-                                maxId = resMaxId;
-                                currentIdAmount = resCurrIdAmount;
-                            })
+                        } else {
+                            saveURL()
                         }
-                    });
-                } else {
-                    saveURL()
+                    })
                 }
-            })
+            } else {
+                res.end("This is not a valid URL."); // URL is incorrect
+            }
+        } else {
+            res.end("You are a robot."); // Recaptcha failed
         }
-
-    // If the URL is incorrect
-    } else {
-        console.log('This is not a valid URL.');
-    }
+    });
 });
 
 function makeId() {
@@ -96,7 +104,7 @@ function getIdState(callback) {
 
         // If there's less than 20% of free link, set a longer link and reset the counter
         if (!err) {
-            [currentIdAmount, length] = [values.length, parseInt(values.slice(-1))];
+            [length, currentIdAmount] = [values.length, parseInt(values.slice(-1))];
             maxId = multiplicativeRecursive(usableCharLength, usableCharLength, length);
 
             if (currentIdAmount > (maxId * 0.80)) {
@@ -124,6 +132,24 @@ function getIdState(callback) {
             return multiplicativeRecursive(number, multiplicand, counter)
         }
     }
+}
+
+function verifyRecaptcha(key, callback) {
+    //callback(true); /*
+    https.get("https://www.google.com/recaptcha/api/siteverify?secret=" + process.env.CAPTCHA + "&response=" + key, (res) => {
+        let data = "";
+        res.on('data', function (chunk) {
+            data += chunk.toString();
+        });
+        res.on('end', function() {
+            try {
+                let parsedData = JSON.parse(data);
+                callback(parsedData.success);
+            } catch (e) {
+                callback(false);
+            }
+        });
+    });
 }
 
 module.exports = router;

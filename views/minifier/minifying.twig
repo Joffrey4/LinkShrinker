@@ -1,8 +1,13 @@
 {% extends 'index.twig' %}
 
 {% block minifier %}
-    <form action="/minified!" method="post">
+    <form action="/minified!" method="post" id='minifying-form'>
         <input placeholder=" {{ shortener_placeholder }}" type="url" required name="uri">
-        <button type="submit" autofocus> {{ shortener_button }}</button>
+        <button autofocus
+                class="g-recaptcha"
+                data-sitekey="6LfirUYUAAAAAIQ9vstm5jnA4NMXeUwb8J53AiqK"
+                data-callback='onSubmit'>
+            {{ shortener_button }}
+        </button>
     </form>
 {% endblock %}
