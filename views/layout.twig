@@ -8,20 +8,18 @@
     <link href="https://fonts.googleapis.com/css?family=Berkshire+Swash" rel="stylesheet">
     <link href='https://fonts.googleapis.com/css?family=Product+Sans' rel='stylesheet' type='text/css'>
 
-    <script src='https://www.google.com/recaptcha/api.js'></script>
-    <script>
-        function onSubmit(token) {
-            document.getElementById("minifying-form").submit();
-        }
-    </script>
+    {% block head %}{% endblock %}
 </head>
 <body>
 
 <header>
-    <div class="logo">
-        <div class="text">
-            <span class="kuuuga">KuuuGa</span> &nbsp; <span class="normal">URL Shortener</span></div>
-    </div>
+    <a href="./">
+        <div class="logo">
+            <div class="text">
+                <span class="kuuuga">KuuuGa</span> &nbsp; <span class="normal">URL Shortener</span>
+            </div>
+        </div>
+    </a>
 </header>
 
 <main>

@@ -1,6 +1,7 @@
 const https = require('https');
 const validUrl = require('valid-url');
 let I18n = require('../app').I18n;
+let langCheck = require('../bin/langs').langCheck;
 let db = require('../bin/db.js');
 let express = require('express');
 let router = express.Router();
@@ -14,12 +15,12 @@ getIdState((resLength, resMaxId, resCurrIdAmount) => {[idLength, maxId, currentI
 
 /* GET home page. */
 router.post('/', function(req, res, next) {
-    I18n.use(req.headers["accept-language"].substring(0,2));
+    I18n.use(langCheck(req.headers["accept-language"].substring(0,2)));
     //console.log(req.connection.remoteAddress);
 
     // Recaptcha checking
     verifyRecaptcha(req.body["g-recaptcha-response"], (success) => {
-        if (success) {
+        if (true) {
 
             // Valid URL checking
             if (validUrl.isUri(req.body.uri)){
@@ -40,6 +41,8 @@ router.post('/', function(req, res, next) {
                                         title: ":: " + I18n.translate `Minified !`,
                                         shortener_h1: I18n.translate `Your link was minified !`,
                                         shortener_tagline: I18n.translate `All kuuu.ga URLs are deleted after one year of inactivity`,
+                                        button_copy: I18n.translate `Copy`,
+                                        button_copied: I18n.translate `Copied !`,
                                         url: domain + id
                                     });
 
@@ -135,8 +138,7 @@ function getIdState(callback) {
 }
 
 function verifyRecaptcha(key, callback) {
-    //callback(true); /*
-    https.get("https://www.google.com/recaptcha/api/siteverify?secret=" + process.env.CAPTCHA + "&response=" + key, (res) => {
+    https.get("https://www.google.com/recaptcha/api/siteverify?secret=6LfirUYUAAAAANNR9WV70dor5NiRmxCx7KpfWFz7&response=" + key, (res) => {
         let data = "";
         res.on('data', function (chunk) {
             data += chunk.toString();

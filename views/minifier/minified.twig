@@ -1,5 +1,28 @@
 {% extends 'index.twig' %}
 
+{% block head %}
+    <script>
+        function linkCopy() {
+            // Copy the content of the input in the clipboard
+            let copyText = document.getElementById("copyable-input");
+            copyText.select();
+            document.execCommand("Copy");
+
+            // Set the button text to "copied"
+            let copyButton = document.getElementById("copy-button");
+            copyButton.innerText = "{{ button_copied }}";
+
+            // Reset back the button text
+            setTimeout(() => {
+                copyButton.innerText = "{{ button_copy }}"
+            }, 1300);
+        }
+    </script>
+{% endblock %}
+
 {% block minifier %}
-    <input readonly value="{{ url }}" onclick="this.select()">
+    <div class="copyable-input-content">
+        <input class="copyable-input" id="copyable-input" readonly value="{{ url }}" onclick="this.select()">
+        <button class="copy-button" id="copy-button" onclick="linkCopy()">{{ button_copy }}</button>
+    </div>
 {% endblock %}

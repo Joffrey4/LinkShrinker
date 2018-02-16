@@ -1,10 +1,11 @@
 let I18n = require('../app').I18n;
+let langCheck = require('../bin/langs').langCheck;
 let express = require('express');
 let router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    I18n.use(req.headers["accept-language"].substring(0,2));
+    I18n.use(langCheck(req.headers["accept-language"].substring(0,2)));
     res.render('minifier/minifying',
         {
             shortener_h1: I18n.translate `Minify your links`,
