@@ -1,9 +1,9 @@
 {% extends 'index.twig' %}
 
 {% block head %}
-    <script src='https://www.google.com/recaptcha/api.js'></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
-        function submitLink(token) {
+        function onSubmit(token) {
             document.getElementById("minifying-form").submit();
         }
     </script>
@@ -12,11 +12,10 @@
 {% block minifier %}
     <form action="/minified!" method="post" id='minifying-form'>
         <input class="long-url-input" placeholder="{{ shortener_placeholder }}" type="url" required name="uri">
-        <button class="long-url-button"
-                autofocus
-                class="g-recaptcha"
+        <button autofocus
+                class="g-recaptcha long-url-button"
                 data-sitekey="6LfirUYUAAAAAIQ9vstm5jnA4NMXeUwb8J53AiqK"
-                data-callback='submitLink'>
+                data-callback='onSubmit'>
             {{ shortener_button }}
         </button>
     </form>

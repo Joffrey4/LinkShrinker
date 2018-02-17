@@ -16,11 +16,10 @@ getIdState((resLength, resMaxId, resCurrIdAmount) => {[idLength, maxId, currentI
 /* GET home page. */
 router.post('/', function(req, res, next) {
     I18n.use(langCheck(req.headers["accept-language"].substring(0,2)));
-    //console.log(req.connection.remoteAddress);
 
     // Recaptcha checking
     verifyRecaptcha(req.body["g-recaptcha-response"], (success) => {
-        if (true) {
+        if (success) {
 
             // Valid URL checking
             if (validUrl.isUri(req.body.uri)){
